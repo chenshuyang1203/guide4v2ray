@@ -189,3 +189,31 @@ server {
  /var/log/v2ray/access.log
  /var/log/v2ray/error.log
  ```
+
+# 连接问题
+## v2ray.vmess.aead.forced = false
+```
+2022/08/21 09:28:31 127.0.0.1:42642 rejected  common/drain: common/drain: unable to drain connection > websocket: close 1006 (abnormal closure): unexpected EOF > proxy/vmess/encoding: invalid user: VMessAEAD is enforced and a non VMessAEAD connection is received. You can still disable this security feature with environment variable v2ray.vmess.aead.forced = false . You will not be able to enable legacy header workaround in the future.
+```
+在v2ray的服务脚本里面添加下面一句话
+```
+cat /etc/systemd/system/v2ray.service
+[Unit]
+Description=V2Ray Service
+Documentation=https://www.v2fly.org/
+After=network.target nss-lookup.target
+
+[Service]
+User=nobody
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+ExecStart=/usr/local/bin/v2ray -config /usr/local/etc/v2ray/config.json
+Restart=on-failure
+RestartPreventExitStatus=23
+
+Environment=V2RAY_VMESS_AEAD_FORCED=false
+
+[Install]
+WantedBy=multi-user.target
+```
